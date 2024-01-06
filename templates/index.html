@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>hTodo</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link rel="stylesheet" href="/static/index.css">
+        <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    </head>
+
+    <body>
+        <main>
+            <header>
+            </header>
+            <section>
+                <input type="search" name="key" placeholder="Search..."
+                    hx-get="/search"
+                    hx-trigger="keyup changed delay:200ms"
+                    hx-target="#search-results">
+                <div id="search-results"></div>
+            </section>
+        </main>
+    </body>
+</html>
