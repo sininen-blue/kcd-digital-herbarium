@@ -1,8 +1,14 @@
 <ul>
     {{ range .results }}
     <li>
-        <h3>{{ .Name }}</h3>
-        <p>{{ .Description }}</p>
+        <div
+            hx-get="/page/{{.name}}"
+            hx-target="section"
+            hx-swap="outerHTML">
+
+            <h3>{{ .Name }}</h3>
+            <p>{{ .Description }}</p>
+        </div>
     </li>
     {{ end }}
 </ul>

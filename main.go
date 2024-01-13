@@ -32,12 +32,18 @@ func main() {
 	http.HandleFunc("/search", func(w http.ResponseWriter, r *http.Request) {
         tmpl := template.Must(template.ParseFiles("./templates/fragments/results.html"))
 
-        query_string := "select name, description from ingredients where name like ?"
+        // results for just the ingredients
+        // I can probably sql this shit
+        query_string := `
+        select name, description from ingredients where name like ?
+        union
+        select name, description from potion where name like ?
+        `
         query_key := "%"+r.URL.Query().Get("key")+"%"
 
-        rows, err := db.Query(query_string, query_key)
+        rows, err := db.Query(query_string, query_key, query_key)
         if err != nil {
-            log.Println("first")
+            log.Println("Database query error")
             log.Fatal(err)
         }
         defer rows.Close()
@@ -60,6 +66,10 @@ func main() {
         tmpl.Execute(w, data)
 
 	})
+
+	// http.HandleFunc("/page", func(w http.ResponseWriter, r *http.Request) {
+ //        tmpl := template.Must(template.ParseFiles("./templates/fragments/results.html"))
+ //    })
 
 	log.Println("App running on localhost:8000")
 	log.Fatal(http.ListenAndServe(":8000", nil))
