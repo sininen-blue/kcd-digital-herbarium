@@ -1,7 +1,10 @@
 <ul>
     <p>testoairestn</p>
     {{ range .results }}
-    <li>
+    <!-- need to figure out how to make sure it's an ingredient -->
+    <li 
+        hx-get="/ingredient/{{ .Name }}"
+        hx-target="section">
         <h3>{{ .Name }}</h3>
         <p>{{ .Description }}</p>
     </li>

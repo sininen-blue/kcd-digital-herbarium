@@ -16,7 +16,7 @@ func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/", indexHandler)
 	r.HandleFunc("/search", searchHandler)
-    r.HandleFunc("/page/ingredient/{id:[0-9]+}", ingredientDetailHandler)
+    r.HandleFunc("/ingredient/{name}", ingredientDetailHandler)
 
 	http.Handle("/", r)
 
@@ -59,6 +59,7 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer rows.Close()
 
+    // TODO make either a potion sturct or generalize this
 	var results []Ingredient
 	for rows.Next() {
 		var name string
@@ -78,8 +79,28 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func ingredientDetailHandler(w http.ResponseWriter, r *http.Request) {
-    vars := mux.Vars(r)
-	query_string := "select name, description from ingredients where rowid = ?"
-	query_key := vars["id"]
+	db, err := sql.Open("sqlite3", "./db/herbarium.db")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
 
+    vars := mux.Vars(r)
+	query_string := "select name, description from ingredients where name = ?"
+	query_key := vars["name"]
+
+
+    row := db.QueryRow(query_string, query_key)
+
+    var name string
+    var description string
+    err = row.Scan(&name, &description)
+    if err != nil {
+        log.Fatal(err)
+    }
+    ingredient := Ingredient{Name: name, Description: description}
+
+
+	tmpl := template.Must(template.ParseFiles("./templates/fragments/ingredient-detail.html"))
+    tmpl.Execute(w, ingredient)
 }
