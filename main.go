@@ -16,7 +16,7 @@ type Ingredient struct {
 }
 
 func main() {
-    db, err := sql.Open("sqlite3", "./db/herbarium")
+    db, err := sql.Open("sqlite3", "./db/herbarium.db")
     if err != nil {
         log.Fatal(err)
     }
