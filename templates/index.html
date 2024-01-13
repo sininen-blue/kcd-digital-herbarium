@@ -8,7 +8,7 @@
         <script src="https://cdn.jsdelivr.net/npm/@unocss/runtime"></script>
         <script src="https://unpkg.com/htmx.org@1.9.10"></script>
         <style>
-            .htmx-request {opacity: 1}
+        .htmx-request {opacity: 1}
         </style>
     </head>
 
@@ -16,14 +16,14 @@
         <main>
             <header class="h-12 flex items-center">
                 <div class="mx-auto w-fit">
-                <input type="search" name="key" placeholder="Search..." autofocus
-                    class="w-76 h-8"
-                    hx-get="/search"
-                    hx-trigger="keyup changed delay:200ms"
-                    hx-indicator="#spinner"
-                    hx-target="#search-results"
-                    hx-swap="innerHTML"
-                >
+                    <input type="search" name="key" placeholder="Search..." autofocus
+                        class="w-76 h-8"
+                        hx-get="/search"
+                        hx-trigger="keyup changed delay:200ms"
+                        hx-indicator="#spinner"
+                        hx-target="#search-results"
+                        hx-swap="innerHTML"
+                    >
                     <img id="spinner" class="opacity-0 animate-spin" src="/static/loader.svg">
                 </div>
             </header>
