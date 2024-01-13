@@ -1,13 +1,12 @@
-<ul>
-    <p>testoairestn</p>
-    {{ range .results }}
-    <!-- need to figure out how to make sure it's an ingredient -->
-    <li 
-        hx-get="/ingredient/{{ .Name }}"
-        hx-target="section">
-        <h3>{{ .Name }}</h3>
-        <p>{{ .Description }}</p>
-    </li>
-    {{ end }}
-</ul>
+{{ range .results }}
+<!-- need to figure out how to make sure it's an ingredient -->
+<div 
+    class="w-46 h-72 p-4 font-sans rounded shadow-md shadow-bg-800 bg-slate-700 text-slate-200"
+    hx-get="/ingredient/{{ .Name }}"
+    hx-target="section">
 
+    <h3>{{ .Name }}</h3>
+    <p class="min-h-0 h-4/6 overflow-hidden">{{ .Description }}</p>
+    <div></div>
+</div>
+{{ end }}
