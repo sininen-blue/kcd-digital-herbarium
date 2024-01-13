@@ -1,14 +1,9 @@
 <ul>
+    <p>testoairestn</p>
     {{ range .results }}
     <li>
-        <div
-            hx-get="/page/{{.name}}"
-            hx-target="section"
-            hx-swap="outerHTML">
-
-            <h3>{{ .Name }}</h3>
-            <p>{{ .Description }}</p>
-        </div>
+        <h3>{{ .Name }}</h3>
+        <p>{{ .Description }}</p>
     </li>
     {{ end }}
 </ul>
