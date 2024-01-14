@@ -11,12 +11,11 @@ import (
 )
 
 func main() {
-	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("statis"))))
-
 	r := mux.NewRouter()
 	r.HandleFunc("/", indexHandler)
 	r.HandleFunc("/search", searchHandler)
     r.HandleFunc("/ingredient/{name}", ingredientDetailHandler)
+    r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 
 	http.Handle("/", r)
 
