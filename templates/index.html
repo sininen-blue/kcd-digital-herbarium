@@ -16,6 +16,15 @@
         <main>
             <header class="h-12 flex items-center">
                 <div class="mx-auto w-fit flex">
+                    <div
+                        class="cursor-pointer block rounded w-6 h-6 p-1 mr-2 hover:bg-slate-700"
+                        hx-get="/"
+                        hx-triger="click"
+                        hx-indicator="#spinner"
+                        hx-target="body"
+                        hx-swap="innerHTML">
+                        <img class="invert" src="/static/arrow-left.svg">
+                    </div>
                     <input type="search" name="key" placeholder="Search..." autofocus
                         class="w-76 h-8"
                         hx-get="/search"
