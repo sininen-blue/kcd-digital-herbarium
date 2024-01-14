@@ -31,11 +31,6 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	tmpl.Execute(w, nil)
 }
 
-type Ingredient struct {
-	Name        string
-	Description string
-}
-
 type SearchResult struct {
 	Name        string
 	Description string
@@ -94,28 +89,63 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 	tmpl.Execute(w, data)
 }
 
+
+type Potion struct {
+    Name string
+    Description string
+}
+
+type Ingredient struct {
+	Name        string
+	Description string
+    IngredientFor []Potion
+}
+
 func ingredientDetailHandler(w http.ResponseWriter, r *http.Request) {
 	db, err := sql.Open("sqlite3", "./db/herbarium.db")
-	if err != nil {
-		log.Fatal(err)
-	}
+    check_err(err)
 	defer db.Close()
 
     vars := mux.Vars(r)
-	query_string := "select name, description from ingredients where name = ?"
+
+    // get the ingredient
+	query_string := "select rowid, name, description from ingredients where name = ?"
 	query_key := vars["name"]
 
+    ingRow := db.QueryRow(query_string, query_key)
 
-    row := db.QueryRow(query_string, query_key)
-
+    var ingredientId string
     var name string
     var description string
-    err = row.Scan(&name, &description)
-    if err != nil {
-        log.Fatal(err)
-    }
-    ingredient := Ingredient{Name: name, Description: description}
+    err = ingRow.Scan(&ingredientId, &name, &description)
+    check_err(err)
 
+
+    query_string = `
+        SELECT potion.name, potion.description
+        from ingredients
+        INNER JOIN ingredientsMap
+        on ingredients.rowid = ingredientsMap.ingredient_id
+        INNER JOIN potion
+        on ingredientsMap.potion_id = potion.rowid
+        WHERE ingredients.rowid = ?
+        `
+    query_key = ingredientId
+    mapRows, err := db.Query(query_string, query_key)
+    check_err(err)
+
+    var possible_potions []Potion
+	for mapRows.Next() {
+		var name string
+        var description string
+		err = mapRows.Scan(&name, &description)
+        check_err(err)
+
+        potion := Potion{Name: name, Description: description}
+        possible_potions = append(possible_potions, potion)
+	}
+
+    ingredient := Ingredient{Name: name, Description: description, IngredientFor: possible_potions}
 
 	tmpl := template.Must(template.ParseFiles("./templates/fragments/ingredient-detail.html"))
     tmpl.Execute(w, ingredient)
