@@ -1,15 +1,15 @@
 <div
-    class="w-1/3 rounded shadow-md shadow-bg-800 bg-slate-700 text-slate-200"
->
-<p>{{ .Name }}</p>
-<p>{{ .Description }}</p>
+    class="w-1/3 h-fit p-4 rounded shadow-md shadow-bg-800 bg-slate-700 text-slate-200">
+    <h1 class="text-lg text-slate-200">{{ .Name }}</h1>
+    <p>{{ .Description }}</p>
 </div>
 
-<div
-    class="w-1/3 rounded shadow-md shadow-bg-800 bg-slate-700 text-slate-200"
->
-{{ range .IngredientFor }}
-<p>{{ .Name }}</p>
-<p>{{ .Description }}</p>
-{{ end }}
+<div class="flex flex-col p-4 gap-2 w-1/3 rounded shadow-md shadow-bg-800 bg-slate-700 text-slate-200">
+    <h1 class="text-xl">{{ .Name }} can be used to create:</h1>
+    {{ range .IngredientFor }}
+    <div class="p-2 rounded shadow-md shadow-bg-800 bg-slate-600 text-slate-200">
+        <h1 class="text-lg">{{ .Name }}</h1>
+        <p>{{ .Description }}</p>
+    </div>
+    {{ end }}
 </div>
