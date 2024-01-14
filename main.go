@@ -31,45 +31,61 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	tmpl.Execute(w, nil)
 }
 
-type SearchResult struct {
+type Ingredient struct {
 	Name        string
 	Description string
 }
 
+type SearchResult struct {
+	Name        string
+	Description string
+    Category string
+}
+
+func check_err(err error) {
+    if err != nil {
+        log.Fatal(err)
+    }
+}
+
 func searchHandler(w http.ResponseWriter, r *http.Request) {
 	db, err := sql.Open("sqlite3", "./db/herbarium.db")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer db.Close()
+    check_err(err)
 
 	tmpl := template.Must(template.ParseFiles("./templates/fragments/results.html"))
 
-	query_string := `
-    select name, description from ingredients where name like ?
-    union
-    select name, description from potion where name like ?
-    `
+	query_string := "select name, description from ingredients where name like ?"
 	query_key := "%" + r.URL.Query().Get("key") + "%"
 
-	rows, err := db.Query(query_string, query_key, query_key)
-	if err != nil {
-		log.Println("Database query error")
-		log.Fatal(err)
-	}
-	defer rows.Close()
+	ingRows, err := db.Query(query_string , query_key)
+    check_err(err)
+	defer ingRows.Close()
 
-    // TODO make either a potion sturct or generalize this
 	var results []SearchResult
-	for rows.Next() {
+
+	for ingRows.Next() {
 		var name string
 		var description string
-		err = rows.Scan(&name, &description)
-		if err != nil {
-			log.Fatal(err)
-		}
-		ingredient := SearchResult{Name: name, Description: description}
+		err = ingRows.Scan(&name, &description)
+        check_err(err)
+
+        ingredient := SearchResult{Name: name, Description: description, Category: "ingredient"}
 		results = append(results, ingredient)
+	}
+
+	query_string = "select name, description from potion where name like ?"
+	potRows, err := db.Query(query_string , query_key)
+    check_err(err)
+	defer ingRows.Close()
+
+	for potRows.Next() {
+		var name string
+		var description string
+		err = potRows.Scan(&name, &description)
+        check_err(err)
+
+        potion := SearchResult{Name: name, Description: description, Category: "potion"}
+		results = append(results, potion)
 	}
 
 	data := map[string][]SearchResult{
