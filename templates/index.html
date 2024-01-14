@@ -12,10 +12,10 @@
         </style>
     </head>
 
-    <body class="bg-slate-800">
+    <body class="font-sans bg-slate-800">
         <main>
             <header class="h-12 flex items-center">
-                <div class="mx-auto w-fit">
+                <div class="mx-auto w-fit flex">
                     <input type="search" name="key" placeholder="Search..." autofocus
                         class="w-76 h-8"
                         hx-get="/search"
@@ -24,7 +24,10 @@
                         hx-target="#search-results"
                         hx-swap="innerHTML"
                     >
-                    <img id="spinner" class="opacity-0 animate-spin" src="/static/loader.svg">
+                    <div class="block w-0 h-0">
+                        <img id="spinner" 
+                            class="relative top-1 right-8 opacity-0 animate-spin" src="/static/loader.svg">
+                    </div>
                 </div>
             </header>
             <section 
