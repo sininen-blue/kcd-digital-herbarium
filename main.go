@@ -31,7 +31,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	tmpl.Execute(w, nil)
 }
 
-type Ingredient struct {
+type SearchResult struct {
 	Name        string
 	Description string
 }
@@ -60,7 +60,7 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 	defer rows.Close()
 
     // TODO make either a potion sturct or generalize this
-	var results []Ingredient
+	var results []SearchResult
 	for rows.Next() {
 		var name string
 		var description string
@@ -68,11 +68,11 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		ingredient := Ingredient{Name: name, Description: description}
+		ingredient := SearchResult{Name: name, Description: description}
 		results = append(results, ingredient)
 	}
 
-	data := map[string][]Ingredient{
+	data := map[string][]SearchResult{
 		"results": results,
 	}
 	tmpl.Execute(w, data)
