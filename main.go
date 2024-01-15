@@ -15,6 +15,7 @@ func main() {
 	r.HandleFunc("/", indexHandler)
 	r.HandleFunc("/search", searchHandler)
     r.HandleFunc("/ingredient/{name}", ingredientDetailHandler)
+    r.HandleFunc("/potion/{name}", potionDetailHandler)
     r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 
 	http.Handle("/", r)
@@ -92,6 +93,12 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 type Potion struct {
     Name string
     Description string
+    Recipe []IngredientMap
+}
+
+type IngredientMap struct {
+    Name string
+    Amount string
 }
 
 type Ingredient struct {
@@ -148,4 +155,51 @@ func ingredientDetailHandler(w http.ResponseWriter, r *http.Request) {
 
 	tmpl := template.Must(template.ParseFiles("./templates/fragments/ingredient-detail.html"))
     tmpl.Execute(w, ingredient)
+}
+
+
+func potionDetailHandler(w http.ResponseWriter, r *http.Request) {
+	db, err := sql.Open("sqlite3", "./db/herbarium.db")
+    check_err(err)
+	defer db.Close()
+
+    vars := mux.Vars(r)
+	query_string := "select rowid, name, description from potion where name = ?"
+	query_key := vars["name"]
+
+    potRow := db.QueryRow(query_string, query_key)
+    var potionId string
+    var name string
+    var description string
+    err = potRow.Scan(&potionId, &name, &description)
+    check_err(err)
+
+    query_string = `
+        SELECT ingredients.name, ingredientsMap.amount
+        FROM ingredientsMap
+        INNER JOIN ingredients
+        ON ingredients.rowid = ingredientsMap.ingredient_id
+        INNER JOIN potion
+        ON potion.rowid = ingredientsMap.potion_id
+        WHERE potion.rowid = ?;
+        `
+    query_key = potionId
+    mapRows, err := db.Query(query_string, query_key)
+    check_err(err)
+
+    var ingredientsUsed []IngredientMap
+	for mapRows.Next() {
+		var name string
+        var amount string
+		err = mapRows.Scan(&name, &amount)
+        check_err(err)
+
+        ingredient := IngredientMap{Name: name, Amount: amount}
+        ingredientsUsed = append(ingredientsUsed, ingredient)
+	}
+
+    potion := Potion{Name: name, Description: description, Recipe: ingredientsUsed}
+
+	tmpl := template.Must(template.ParseFiles("./templates/fragments/potion-detail.html"))
+    tmpl.Execute(w, potion)
 }
