@@ -28,7 +28,7 @@ func main() {
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	tmpl := template.Must(template.ParseFiles("./templates/index.html"))
-	tmpl.Execute(w, nil)
+	tmpl.ExecuteTemplate(w, "index", nil)
 }
 
 type SearchResult struct {
@@ -91,6 +91,7 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 
 
 type Potion struct {
+    Type string
     Name string
     Description string
     Recipe []IngredientMap
@@ -102,6 +103,7 @@ type IngredientMap struct {
 }
 
 type Ingredient struct {
+    Type string
 	Name        string
 	Description string
     IngredientFor []Potion
@@ -147,14 +149,18 @@ func ingredientDetailHandler(w http.ResponseWriter, r *http.Request) {
 		err = mapRows.Scan(&name, &description)
         check_err(err)
 
-        potion := Potion{Name: name, Description: description}
+        potion := Potion{Type: "potion", Name: name, Description: description}
         possible_potions = append(possible_potions, potion)
 	}
 
-    ingredient := Ingredient{Name: name, Description: description, IngredientFor: possible_potions}
+    ingredient := Ingredient{Type: "ingredient", Name: name, Description: description, IngredientFor: possible_potions}
 
-	tmpl := template.Must(template.ParseFiles("./templates/fragments/ingredient-detail.html"))
-    tmpl.Execute(w, ingredient)
+    tmpl := template.Must(template.ParseFiles("./templates/index.html"))
+    if r.Header.Get("HX-Request") == "true" {
+        tmpl.ExecuteTemplate(w, "ingredientDetail" ,ingredient)
+    } else {
+        tmpl.ExecuteTemplate(w, "index", ingredient)
+    }
 }
 
 
@@ -198,8 +204,12 @@ func potionDetailHandler(w http.ResponseWriter, r *http.Request) {
         ingredientsUsed = append(ingredientsUsed, ingredient)
 	}
 
-    potion := Potion{Name: name, Description: description, Recipe: ingredientsUsed}
+    potion := Potion{Type: "potion", Name: name, Description: description, Recipe: ingredientsUsed}
 
-	tmpl := template.Must(template.ParseFiles("./templates/fragments/potion-detail.html"))
-    tmpl.Execute(w, potion)
+    tmpl := template.Must(template.ParseFiles("./templates/index.html"))
+    if r.Header.Get("HX-Request") == "true" {
+        tmpl.ExecuteTemplate(w, "potionDetail", potion)
+    } else {
+        tmpl.ExecuteTemplate(w, "index", potion)
+    }
 }
