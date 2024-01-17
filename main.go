@@ -45,6 +45,7 @@ func check_err(err error) {
 
 func searchHandler(w http.ResponseWriter, r *http.Request) {
 	db, err := sql.Open("sqlite3", "./db/herbarium.db")
+    defer db.Close()
     check_err(err)
 
 	tmpl := template.Must(template.ParseFiles("./templates/fragments/results.html"))
