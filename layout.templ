@@ -1,0 +1,42 @@
+package main
+
+templ headerTemplate() {
+    <header>
+        <h1>THis is the header</h1>
+    </header>
+}
+
+templ layout(name string) {
+    <html>
+		<head><title>{ name }</title></head>
+		<body>
+			@headerTemplate()
+			<main>
+				{ children... }
+			</main>
+		</body>
+	</html>
+}
+
+templ potionsTemplate(potions []Potion) {
+    <ul>
+        for _, p := range potions {
+            <li>
+                <h2>{ p.Name }</h2>
+                <p>{ p.Description }</p>
+            </li>
+        }
+    </ul>
+}
+
+templ home() {
+    @layout("Home") {
+        <p>this is a test string</p>
+    }
+}
+
+templ potions(potions []Potion) {
+    @layout("Potions") {
+        @potionsTemplate(potions)
+    }
+}
