@@ -26,7 +26,16 @@ func main() {
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
-    templ.Handler(home()).ServeHTTP(w, r)
+    // TODO replace with db query
+    var potionSlice []Potion
+    pot := Potion{Name: "fuck", Description: "it makes you fuck"}
+    potionSlice = append(potionSlice, pot)
+
+    query := r.URL.Query().Get("q")
+    if query != "" {
+    }
+
+        templ.Handler(home(potionSlice).ServeHTTP(w, r)
 }
 
 

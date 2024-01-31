@@ -30,18 +30,22 @@ templ potionsTemplate(potions []Potion) {
     </ul>
 }
 
-templ home() {
+templ home(options []Potion) {
     @layout("Home") {
+        @potionQuery(options)
+    }
+}
+
+templ potionQuery(options []Potion) {
         <form>
             <label>Potion
                 <input type="search" name="q"/>
             </label>
+            @potionAutoComplete(options)
             <button>Add</button>
         </form>
-    }
 }
-
-templ potionAutoComplete(query string, options []Potion) {
+templ potionAutoComplete(options []Potion) {
     <datalist id="q">
         for _, opt := range options {
             <option value={ opt.Name }/>
