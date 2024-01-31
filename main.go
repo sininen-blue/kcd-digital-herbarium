@@ -16,16 +16,17 @@ type Potion struct {
 
 func main() {
 	r := mux.NewRouter()
-	// r.PathPrefix("/").Handler(templ.Handler(home()))
+    r.HandleFunc("/", indexHandler)
     r.HandleFunc("/potions/", potionHandler)
-
-
-
 	http.Handle("/", r)
 
 
 	log.Println("App running on localhost:8000")
 	log.Fatal(http.ListenAndServe(":8000", nil))
+}
+
+func indexHandler(w http.ResponseWriter, r *http.Request) {
+    templ.Handler(home()).ServeHTTP(w, r)
 }
 
 
