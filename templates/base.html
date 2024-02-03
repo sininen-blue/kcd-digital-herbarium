@@ -13,7 +13,7 @@
 <body>
     <main class="f-switch">
         <section>
-            <form>
+            <form hx-post="/" hx-trigger="submit" hx-swap="afterbegin" hx-target="#inventory">
                 <label for="ingredient">Add Ingredient</label>
                 <input type="search" name="ingredient" id="ingredient" list="ingredients">
                 <datalist id="ingredients">
@@ -24,7 +24,12 @@
 
                 <button type="submit">Add</button>
             </form>
-            <ul>
+
+            <h1>Inventory</h1>
+            <ul id="inventory">
+                {{ range .Inventory }}
+                    {{ template "invItem" . }}
+                {{ end }}
             </ul>
         </section>
 
