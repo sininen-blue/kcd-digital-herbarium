@@ -1,5 +1,5 @@
 {{ block "invItem" . }}
-<li>{{ .Name }}</li>
-<button>Add</button>
-<button>Subtract</button>
+<li><p>{{ .Amount }} - {{ .Ingredient.Name }}</p></li>
+<button hx-post="{{ .Ingredient.Name }}/add" hx-swap="none">Add</button>
+<button hx-post="{{ .Ingredient.Name }}/subtract" hx-swap="none">Subtract</button>
 {{ end }}

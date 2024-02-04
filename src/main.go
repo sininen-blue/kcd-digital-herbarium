@@ -1,10 +1,10 @@
 package main
 
 import (
+	"database/sql"
 	"html/template"
 	"log"
 	"net/http"
-    "database/sql"
 
 	"github.com/gorilla/mux"
 	_ "github.com/mattn/go-sqlite3"
@@ -122,6 +122,8 @@ func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/", indexHandler).Methods("GET")
 	r.HandleFunc("/", addInventory).Methods("POST")
+	r.HandleFunc("/{ingredient}/add", itemAdd).Methods("POST")
+	r.HandleFunc("/{ingredient}/subtract", itemSubtract).Methods("POST")
 	http.Handle("/", r)
 
 	log.Println("App running on localhost:8000")
@@ -139,13 +141,49 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func addInventory(w http.ResponseWriter, r *http.Request) {
-    key := r.FormValue("ingredient")
-
-    query := "select name from ingredients where name == ?"
+    // still need true validation
+    query := "select * from ingredients where name like ?"
+    key := "%"+r.FormValue("ingredient")+"%"
     ing := getIngredient(query, key)
-    item := invItem{Ingredient: ing, Amount: 1} 
 
-    currentInv = append(currentInv, item)
+    exists := false
+    for i, invItem := range currentInv {
+        if invItem.Ingredient == ing {
+            exists = true
 
-    templ.ExecuteTemplate(w, "invItem", item)
+            currentInv[i].Amount += 1
+        }
+    }
+
+    if exists == false {
+        item := invItem{Ingredient: ing, Amount: 1} 
+        currentInv = append(currentInv, item)
+        templ.ExecuteTemplate(w, "invItem", item)
+    } else {
+        w.Header().Add("hx-trigger", "changedInv")
+    }
+}
+
+func itemAdd(w http.ResponseWriter, r *http.Request) {
+    vars := mux.Vars(r)
+
+    for i, item := range currentInv {
+        if item.Ingredient.Name == vars["ingredient"] {
+            currentInv[i].Amount += 1
+        }
+    }
+
+    w.Header().Add("hx-trigger", "changedInv")
+}
+
+func itemSubtract(w http.ResponseWriter, r *http.Request) {
+    vars := mux.Vars(r)
+
+    for i, item := range currentInv {
+        if item.Ingredient.Name == vars["ingredient"] {
+            currentInv[i].Amount -= 1
+        }
+    }
+
+    w.Header().Add("hx-trigger", "changedInv")
 }
