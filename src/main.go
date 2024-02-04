@@ -127,6 +127,8 @@ func main() {
 	r.HandleFunc("/", addInventory).Methods("POST")
 	r.HandleFunc("/{ingredient}/add", itemAdd).Methods("POST")
 	r.HandleFunc("/{ingredient}/subtract", itemSubtract).Methods("POST")
+
+    r.HandleFunc("/potions/", potionHandler).Methods("GET")
 	http.Handle("/", r)
 
 	log.Println("App running on localhost:8000")
@@ -193,4 +195,7 @@ func itemSubtract(w http.ResponseWriter, r *http.Request) {
     }
 
     w.Header().Add("hx-trigger", "changedInv")
+}
+
+func potionHandler(w http.ResponseWriter, r *http.Request) {
 }

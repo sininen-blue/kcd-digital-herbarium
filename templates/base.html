@@ -53,7 +53,11 @@
 
         <section>
             <h1>Available Potions</h1>
-            <ul>
+            <ul hx-get="/potions/" hx-swap="outerHTML" hx-trigger="changedInv from:body" hx-selct="#potions"
+                id="potions">
+                {{ range .Potions }}
+                    {{ template "potion" . }}
+                {{ end }}
             </ul>
         </section>
     </main>
