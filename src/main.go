@@ -120,6 +120,8 @@ func main() {
     defer db.Close()
 
 	r := mux.NewRouter()
+    r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+
 	r.HandleFunc("/", indexHandler).Methods("GET")
 	r.HandleFunc("/", addInventory).Methods("POST")
 	r.HandleFunc("/{ingredient}/add", itemAdd).Methods("POST")

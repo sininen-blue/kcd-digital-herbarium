@@ -1,5 +1,13 @@
 {{ block "invItem" . }}
-<li><p>{{ .Amount }} - {{ .Ingredient.Name }}</p></li>
+<li>
+    <p>
+        {{ .Amount }} -
+        <img style="width:24px"
+            src="/static/images/{{ .Ingredient.Name }}.webp"
+            alt="Image of {{ .Ingredient.Name }}" width="24" height="24">
+        {{ .Ingredient.Name }}
+    </p>
+</li>
 <button hx-post="{{ .Ingredient.Name }}/add" hx-swap="none">Add</button>
 <button hx-post="{{ .Ingredient.Name }}/subtract" hx-swap="none">Subtract</button>
 {{ end }}
