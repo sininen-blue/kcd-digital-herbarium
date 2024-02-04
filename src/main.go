@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"slices"
 
 	"github.com/gorilla/mux"
 	_ "github.com/mattn/go-sqlite3"
@@ -184,6 +185,10 @@ func itemSubtract(w http.ResponseWriter, r *http.Request) {
     for i, item := range currentInv {
         if item.Ingredient.Name == vars["ingredient"] {
             currentInv[i].Amount -= 1
+
+            if currentInv[i].Amount <= 0 {
+                currentInv = slices.Delete(currentInv, i, i+1)
+            }
         }
     }
 
