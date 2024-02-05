@@ -3,14 +3,14 @@
     <p>
         {{ .Amount }} -
         <img style="width:24px"
-            src="/static/images/{{ .Ingredient.Name }}.webp"
-            alt="Image of {{ .Ingredient.Name }}" width="24" height="24">
-        {{ .Ingredient.Name }}
+            src="/static/images/{{ .IngredientName }}.webp"
+            alt="Image of {{ .IngredientName }}" width="24" height="24">
+        {{ .IngredientName }}
     </p>
-    <button hx-post="{{ .Ingredient.Name }}/add" hx-swap="none">
+    <button hx-post="{{ .IngredientName }}/add" hx-swap="none">
         <img class="svg-gray-200" src="/static/icons/plus.svg" alt="plus icon">
     </button>
-    <button hx-post="{{ .Ingredient.Name }}/subtract" hx-swap="none">
+    <button hx-post="{{ .IngredientName }}/subtract" hx-swap="none">
         <img class="svg-gray-200" src="/static/icons/minus.svg" alt="minus icon">
     </button>
 </li>

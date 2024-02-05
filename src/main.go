@@ -5,7 +5,6 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	"slices"
 
 	"github.com/gorilla/mux"
 	_ "github.com/mattn/go-sqlite3"
@@ -28,10 +27,95 @@ type Ingredient struct {
 	url         string
 }
 
-var currentInv []invItem
 type invItem struct {
-    Ingredient Ingredient
+    Id string
+    IngredientName string
     Amount int
+}
+
+func (i invItem) Save() {
+    tx, err := db.Begin()
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    stmt, err := tx.Prepare("insert into inventory(ingredientName, amount) values(?, ?)")
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer stmt.Close()
+
+    _, err = stmt.Exec(i.IngredientName, i.Amount)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    err = tx.Commit()
+    if err != nil {
+        log.Fatal(err)
+    }
+}
+
+
+func (i invItem) Update() {
+    tx, err := db.Begin()
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    stmt, err := tx.Prepare("update inventory set ingredientName = ?, amount = ? where rowid = ?")
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer stmt.Close()
+
+    _, err = stmt.Exec(i.IngredientName, i.Amount, i.Id)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    err = tx.Commit()
+    if err != nil {
+        log.Fatal(err)
+    }
+}
+
+func (i invItem) Delete() {
+    tx, err := db.Begin()
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    stmt, err := tx.Prepare("delete from inventory where rowid = ?")
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer stmt.Close()
+
+    _, err = stmt.Exec(i.Id)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    err = tx.Commit()
+    if err != nil {
+        log.Fatal(err)
+    }
+}
+
+func (i invItem) Inc() {
+    i.Amount += 1
+    i.Update()
+}
+
+func (i invItem) Dec() {
+    i.Amount -= 1
+
+    if i.Amount <= 0 {
+        i.Delete()
+    } else {
+        i.Update()
+    }
 }
 
 func getAllIngredients() []Ingredient {
@@ -60,19 +144,6 @@ func getAllIngredients() []Ingredient {
     return results
 }
 
-// not done
-func getIngredients(query string, key string) []Ingredient{
-    var results []Ingredient
-
-    rows, err := db.Query(query, key)
-    if err != nil {
-        log.Fatal(err)
-    }
-    defer rows.Close()
-
-    return results
-}
-
 func getIngredient(query string, key string) Ingredient{
     var result Ingredient
 
@@ -88,6 +159,49 @@ func getIngredient(query string, key string) Ingredient{
 
     return result
 }
+
+func getAllInventory() []invItem {
+    var results []invItem
+
+    query := "select * from inventory"
+    rows, err := db.Query(query)
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer rows.Close()
+
+    for rows.Next() {
+        var i invItem
+        err = rows.Scan(
+            &i.Id,
+            &i.IngredientName,
+            &i.Amount,
+        )
+        if err != nil {
+            log.Fatal(err)
+        }
+        results = append(results, i)
+    }
+
+    return results
+}
+
+func getInventory(query string, key string) invItem{
+    var result invItem
+
+    row := db.QueryRow(query, key)
+    err := row.Scan(
+        &result.Id,
+        &result.IngredientName,
+        &result.Amount,
+    )
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    return result
+}
+
 
 func getPotions(query string) []Potion {
 	var results []Potion
@@ -139,7 +253,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
     data := map[string]interface{} {
         "Title": "Index",
         "Ingredients": getAllIngredients(),
-        "Inventory": currentInv,
+        "Inventory": getAllInventory(),
     }
 
     templ.ExecuteTemplate(w, "base", data)
@@ -152,17 +266,16 @@ func addInventory(w http.ResponseWriter, r *http.Request) {
     ing := getIngredient(query, key)
 
     exists := false
-    for i, invItem := range currentInv {
-        if invItem.Ingredient == ing {
+    for _, invItem := range getAllInventory() {
+        if invItem.IngredientName == ing.Name {
             exists = true
-
-            currentInv[i].Amount += 1
+            invItem.Inc()
         }
     }
 
     if exists == false {
-        item := invItem{Ingredient: ing, Amount: 1} 
-        currentInv = append(currentInv, item)
+        item := invItem{IngredientName: ing.Name, Amount: 1} 
+        item.Save()
         templ.ExecuteTemplate(w, "invItem", item)
     } else {
         w.Header().Add("hx-trigger", "changedInv")
@@ -172,9 +285,9 @@ func addInventory(w http.ResponseWriter, r *http.Request) {
 func itemAdd(w http.ResponseWriter, r *http.Request) {
     vars := mux.Vars(r)
 
-    for i, item := range currentInv {
-        if item.Ingredient.Name == vars["ingredient"] {
-            currentInv[i].Amount += 1
+    for _, item := range getAllInventory() {
+        if item.IngredientName == vars["ingredient"] {
+            item.Inc()
         }
     }
 
@@ -184,13 +297,9 @@ func itemAdd(w http.ResponseWriter, r *http.Request) {
 func itemSubtract(w http.ResponseWriter, r *http.Request) {
     vars := mux.Vars(r)
 
-    for i, item := range currentInv {
-        if item.Ingredient.Name == vars["ingredient"] {
-            currentInv[i].Amount -= 1
-
-            if currentInv[i].Amount <= 0 {
-                currentInv = slices.Delete(currentInv, i, i+1)
-            }
+    for _, item := range getAllInventory() {
+        if item.IngredientName == vars["ingredient"] {
+            item.Dec()
         }
     }
 
