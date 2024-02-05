@@ -1,0 +1,67 @@
+{{ block "base" . }}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>{{ .Title }}</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="apple-touch-icon" sizes="60x60" href="static/favicon/apple-touch-icon.png">
+    <link rel="icon" type="imagestatic/favicon/png" sizes="32x32" href="static/favicon/favicon-32x32.png">
+    <link rel="icon" type="imagestatic/favicon/png" sizes="16x16" href="static/favicon/favicon-16x16.png">
+    <link rel="manifest" href="static/favicon/site.webmanifest">
+    <link rel="mask-icon" href="static/favicon/safari-pinned-tab.svg" color="#5bbad5">
+    <meta name="msapplication-TileColor" content="#da532c">
+    <meta name="theme-color" content="#ffffff">
+
+    <link rel="stylesheet" href="https://unpkg.com/missing.css@1.1.1">
+    <link rel="stylesheet" href="/static/css/utils.css">
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+</head>
+
+<body>
+    <main class="f-switch">
+        <section>
+            <form hx-post="/" 
+                    hx-trigger="submit" 
+                    hx-swap="beforeend" 
+                    hx-target="#inventory"
+                    hx-on::after-request="if(event.detail.successful) this.reset()">
+
+                <label for="ingredient">Add Ingredient</label>
+                <input type="search" name="ingredient" id="ingredient" list="ingredients" autocomplete="off">
+                <datalist id="ingredients">
+                    {{ range .Ingredients }}
+                        <option value="{{ .Name }}">
+                    {{ end }}
+                </datalist>
+
+                <button style="margin-top:.6rem" type="submit">
+                    <img class="svg-gray-200" src="/static/icons/plus.svg" alt="plus icon">
+                </button>
+            </form>
+
+            <h1>Inventory</h1>
+            <ul hx-get="/" hx-swap="outerHTML" hx-trigger="changedInv from:body" hx-select="#inventory" 
+                id="inventory">
+                {{ range .Inventory }}
+                    {{ template "invItem" . }}
+                {{ end }}
+            </ul>
+        </section>
+
+        <section>
+            <h1>Available Potions</h1>
+            <ul hx-get="/potions/" hx-swap="outerHTML" hx-trigger="changedInv from:body" hx-selct="#potions"
+                id="potions">
+                {{ range .Potions }}
+                    {{ template "potion" . }}
+                {{ end }}
+            </ul>
+        </section>
+    </main>
+</body>
+
+</html>
+{{ end }}
