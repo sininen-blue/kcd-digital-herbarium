@@ -14,10 +14,45 @@ var templ *template.Template
 var db *sql.DB
 
 type Potion struct {
+	Id          string
 	Name        string
 	Description string
 	Effects     string
 	url         string
+}
+
+func getAllPotions() []Potion {
+	var results []Potion
+
+	query := `
+        select potions.* from inventory
+        inner join ingredients on ingredients.name = inventory.ingredientName
+        inner join ingredientsMap on ingredientsMap.potion_id = ingredients.rowid
+        inner join potions on ingredientsMap.potion_id = potions.rowid
+        where inventory.amount >= ingredientsMap.amount
+        group by potions.rowid;
+    `
+	rows, err := db.Query(query)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var i Potion
+		err = rows.Scan(
+			&i.Id,
+			&i.Name,
+			&i.Description,
+			&i.Effects,
+		)
+		if err != nil {
+			log.Fatal(err)
+		}
+		results = append(results, i)
+	}
+
+	return results
 }
 
 type Ingredient struct {
@@ -239,8 +274,6 @@ func main() {
 	r.HandleFunc("/", addInventory).Methods("POST")
 	r.HandleFunc("/{ingredient}/add", itemAdd).Methods("POST")
 	r.HandleFunc("/{ingredient}/subtract", itemSubtract).Methods("POST")
-
-	r.HandleFunc("/potions/", potionHandler).Methods("GET")
 	http.Handle("/", r)
 
 	log.Println("App running on localhost:8000")
@@ -252,6 +285,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 		"Title":       "Index",
 		"Ingredients": getAllIngredients(),
 		"Inventory":   getAllInventory(),
+		"Potions":     getAllPotions(),
 	}
 
 	templ.ExecuteTemplate(w, "base", data)
@@ -302,7 +336,4 @@ func itemSubtract(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Add("hx-trigger", "changedInv")
-}
-
-func potionHandler(w http.ResponseWriter, r *http.Request) {
 }
