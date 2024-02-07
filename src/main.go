@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"slices"
 
 	"github.com/gorilla/mux"
 	_ "github.com/mattn/go-sqlite3"
@@ -22,93 +23,95 @@ type Potion struct {
 }
 
 type IngredientMap struct {
-    IngredientName string
-    Amount int
-    Got bool
+	IngredientName string
+	Amount         int
+	Got            bool
 }
 
 func getAllPotions() []Potion {
-    var possibles []Potion
+	var possibles []Potion
 	var results []Potion
 
-    inventory := getAllInventory()
+	inventory := getAllInventory()
 
-    for _, item := range inventory { 
-        query := `
+	for _, item := range inventory {
+		query := `
             select potions.* from potions
             inner join ingredientsMap on ingredientsMap.potion_id = potions.rowid
             inner join ingredients on ingredients.rowid = ingredientsMap.ingredient_id
             where ingredients.name = ?;
         `
-        rows, err := db.Query(query, item.IngredientName)
-        if err != nil {
-            log.Fatal(err)
-        }
-        defer rows.Close()
+		rows, err := db.Query(query, item.IngredientName)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer rows.Close()
 
-        for rows.Next() {
-            var i Potion
-            err = rows.Scan(
-                &i.Id,
-                &i.Name,
-                &i.Description,
-                &i.Effects,
-            )
-            if err != nil {
-                log.Fatal(err)
-            }
-            possibles = append(possibles, i)
-        }
-    }
+		for rows.Next() {
+			var i Potion
+			err = rows.Scan(
+				&i.Id,
+				&i.Name,
+				&i.Description,
+				&i.Effects,
+			)
+			if err != nil {
+				log.Fatal(err)
+			}
+			possibles = append(possibles, i)
+		}
+	}
 
-    var ingredientsNeeded []IngredientMap
-    for _, potion := range possibles {
-        query := `
+	var ingredientsNeeded []IngredientMap
+	for _, potion := range possibles {
+		query := `
             select ingredients.name, ingredientsMap.amount from potions
             inner join ingredientsMap on ingredientsMap.potion_id = potions.rowid
             inner join ingredients on ingredients.rowid = ingredientsMap.ingredient_id
             where potions.name = ?;
         `
-        rows, err := db.Query(query, potion.Name)
-        if err != nil {
-            log.Fatal(err)
-        }
-        defer rows.Close()
+		rows, err := db.Query(query, potion.Name)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer rows.Close()
 
-        for rows.Next() {
-            var i IngredientMap
-            err = rows.Scan(
-                &i.IngredientName,
-                &i.Amount,
-            )
-            if err != nil {
-                log.Fatal(err)
+		for rows.Next() {
+			var i IngredientMap
+			err = rows.Scan(
+				&i.IngredientName,
+				&i.Amount,
+			)
+			if err != nil {
+				log.Fatal(err)
+			}
+			ingredientsNeeded = append(ingredientsNeeded, i)
+		}
+
+		for i, ingN := range ingredientsNeeded {
+			for _, item := range inventory {
+				if item.IngredientName == ingN.IngredientName && item.Amount >= ingN.Amount {
+					ingredientsNeeded[i].Got = true
+				}
+			}
+		}
+
+		check := true
+		for _, ingN := range ingredientsNeeded {
+			// log.Println(potion.Name, ingN)
+			if ingN.Got == false {
+				check = false
+			}
+		}
+
+		if check == true {
+            if slices.Contains(results, potion) == false {
+                results = append(results, potion)
             }
-            ingredientsNeeded = append(ingredientsNeeded, i)
-        }
-
-        for i, ingN := range ingredientsNeeded {
-            for _, item := range inventory {
-                if item.IngredientName == ingN.IngredientName && item.Amount >= ingN.Amount {
-                    ingredientsNeeded[i].Got = true
-                }
-            }
-        }
-
-        check := true
-        for _, ingN := range ingredientsNeeded {
-            // log.Println(potion.Name, ingN)
-            if ingN.Got == false {
-                check = false
-            }
-        }
-
-        if check == true {
-            results = append(results, potion)
-        } else {
-            ingredientsNeeded = ingredientsNeeded[:0]
-        }
-    }
+		} else {
+			ingredientsNeeded = ingredientsNeeded[:0]
+		}
+	}
 
 	return results
 }
